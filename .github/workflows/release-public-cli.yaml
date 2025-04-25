@@ -1,0 +1,107 @@
+---
+name: Release CLI - Public
+
+on:
+  push:
+    tags:
+    - 'v[0-9]+.[0-9]+.[0-9]+-dev'
+    - 'v[0-9]+.[0-9]+.[0-9]+-staging'
+    - 'v[0-9]+.[0-9]+.[0-9]+'
+
+# DOCS - https://goreleaser.com/ci/actions/
+# DOCS - https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    name: Release
+
+    # DOCS: https://github.com/actions/runner-images/tree/main/images/ubuntu
+    runs-on: ubuntu-latest
+
+    env:
+      GO_VERSION: stable
+      AWS_ASSUME_IAM_ROLE: arn:aws:iam::392513736110:role/tf-role-github-actions
+      AWS_REGION: us-east-2
+
+    steps:
+    -
+      name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    -
+      name: Setup Go environment
+      uses: actions/setup-go@v5
+      with:
+        go-version: '${{ env.GO_VERSION }}'
+    - 
+      name: Extract camber_env from tag
+      id: extract_camber_env
+      run: |
+        TAG=${GITHUB_REF##*/}
+        echo "Git tag: $TAG"
+        if [[ "$TAG" =~ -dev$ ]]; then
+          echo "camber_env=dev" >> $GITHUB_OUTPUT
+        elif [[ "$TAG" =~ -staging$ ]]; then
+          echo "camber_env=staging" >> $GITHUB_OUTPUT
+        else
+          echo "camber_env=production" >> $GITHUB_OUTPUT
+        fi
+    -
+      name: Extract version
+      run: |
+        mkdir -p tmp
+        VERSION=${GITHUB_REF_NAME#v}
+        echo "$VERSION" > tmp/latest.txt
+        cat tmp/latest.txt
+        
+        sed "s/__CAMBER_ENV__/$CAMBER_ENV/g" ./install-v2.sh > tmp/install-v2-modified.sh
+        cat tmp/install-v2-modified.sh
+      env:
+        CAMBER_ENV: ${{ steps.extract_camber_env.outputs.camber_env }}
+    -
+      name: Show environment and files after checkout
+      run: |-
+        echo -n 'PWD: ' && pwd && echo ;
+        echo 'FILES:' && ls -alF && echo ;
+        echo 'ENV:' && env | sort && echo ;
+    -
+      name: Show git status before goreleaser
+      run: >-
+        git status --ignore-submodules --porcelain ;
+        git diff --ignore-submodules ;
+    -
+      name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ env.AWS_ASSUME_IAM_ROLE }}
+        aws-region: ${{ env.AWS_REGION }}
+    -
+      name: Run GoReleaser
+      uses: goreleaser/goreleaser-action@v6
+      with:
+        # either 'goreleaser' (default) or 'goreleaser-pro'
+        distribution: goreleaser
+        # 'latest', 'nightly', or a semver
+        version: "~> v2"
+        args: release --clean --config .goreleaser.yaml
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        CAMBER_ENV: ${{ steps.extract_camber_env.outputs.camber_env }}
+        GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
+    -
+      name: Show git status after goreleaser
+      run: >-
+        git status --ignore-submodules --porcelain ;
+        git diff --ignore-submodules ;
+    -
+      name: Run if changes have been detected
+      if: steps.git-auto-commit-action.outputs.changes_detected == 'true'
+      run: echo "Changes Detected!"
+    -
+      name: Run if no changes have been detected
+      if: steps.git-auto-commit-action.outputs.changes_detected == 'false'
+      run: echo "No Changes!"
