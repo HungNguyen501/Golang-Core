@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"golang-core/hello-go/src"
+	"golang-core/hello/greetings"
 )
 
 func main() {
@@ -14,7 +14,7 @@ func main() {
 		"Alice",
 		"Bob",
 	}
-	messages, err := src.Hellos(names)
+	messages, err := greetings.Hellos(names)
 	if err != nil {
 		log.Fatal(err)
 	}
