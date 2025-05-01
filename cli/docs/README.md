@@ -1,4 +1,4 @@
 CLI tutorials
 ===
 
-- [How To Use the Cobra Package in Go](https://www.digitalocean.com/community/tutorials/how-to-use-the-cobra-package-in-go)
+- [Creating a CLI in Go Using Cobra](https://www.jetbrains.com/guide/go/tutorials/cli-apps-go-cobra/creating_cli/)

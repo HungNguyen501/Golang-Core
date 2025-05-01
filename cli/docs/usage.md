@@ -2,7 +2,8 @@ Mrroot501 CLI Usage
 ===
 
 ```bash
-$ ./bin/mrroot501-cli --help 
+$ export PATH=$HOME/Projects/Golang-Core/cli/bin:$PATH
+$ mrroot501-cli --help 
 mrroot501 is a cli tool.
 
 Usage:
