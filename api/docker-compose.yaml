@@ -1,0 +1,73 @@
+services:
+  golang_api:
+    image: golang_api
+    container_name: golang_api
+    environment:
+      DATABASE_URL: postgres
+      DATABASE_REPLICA_URL: postgres
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ./server
+    networks:
+      - golang_core_api
+    ports:
+      - target: 8686
+        host_ip: 127.0.0.1
+        published: 8686
+        protocol: tcp
+        mode: host
+    healthcheck:
+      test: curl --fail http://127.0.0.1:8686/api/v1/health || exit 1
+      interval: 2s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: local
+      POSTGRES_PASSWORD: local
+      POSTGRES_DB: local
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - target: 5432
+        host_ip: 127.0.0.1
+        published: 5432
+        protocol: tcp
+        mode: host
+    networks:
+      - golang_core_api
+
+  redis:
+    image: redis
+    container_name: redis
+    restart: always
+    networks:
+      - golang_core_api
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - target: 6379
+        host_ip: 127.0.0.1
+        published: 6379
+        protocol: tcp
+        mode: host
+
+networks:
+  golang_core_api:
+    name: golang_core_api

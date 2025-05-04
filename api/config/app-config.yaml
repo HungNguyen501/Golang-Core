@@ -1,0 +1,33 @@
+server:
+  port: 8686
+
+database:
+  protocol: postgresql
+  url: localhost
+  replica_url: localhost
+  name: local
+  username: local
+  password: local
+  port: 5432
+  max_db_conns: 30
+  max_conn_lifetime: 1800 # 30 minutes
+  max_conn_idle_time: 300 # 5 minutes
+
+redis:
+  hosts: localhost:6379
+  pool_size: 100
+  min_idle_conns: 100
+  max_idle_conns: 500
+  write_timeout: 10
+  read_timeout: 5
+  conn_max_lifetime: 600 # 10 minutes
+
+router:
+  allowed_origins: "*"
+  allowed_headers: "*"
+
+aws_config:
+  k8s_role_arn: "arn:aws:iam::000000000000:role/s3-access"
+  s3:
+    data_bucket_name: "golang-core-api"
+  use_localstack: "true"
