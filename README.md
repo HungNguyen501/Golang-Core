@@ -3,8 +3,11 @@ Golang-Core
 
 ## Prerequisites
 - [Go Style Best Practices](https://google.github.io/styleguide/go/best-practices)
-- Go version:
+
+## Project structure
 ```bash
-$ go version
-go version go1.23.2 darwin/amd64
+.
+├── api  # API module
+├── cli  # CLI module
+├── hello # Hello module
 ```
