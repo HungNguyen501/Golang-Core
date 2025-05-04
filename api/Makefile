@@ -22,5 +22,5 @@ migrate:
 migrate-clean:
 	@cd $(FlyayDir) && flyway clean migrate -user=local -password=local -url=jdbc:postgresql://localhost:5432/local && cd -
 
-integration-test: docker-compose-up migrate
+integration-test:
 	@go test -v -tags=integration ./src/test/...

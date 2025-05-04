@@ -41,6 +41,11 @@ jobs:
           && rm flyway-commandline-${FLYWAY_VERSION}.tar.gz \
           && ln -s $(realpath flyway) /usr/local/bin/flyway
 
+    - name: Setup infra
+      id: setup-infra
+      run: |
+        cd api && make docker-compose-up && make migrate
+    
     - name: Run integration tests
       id: integration-tests
       run: |
