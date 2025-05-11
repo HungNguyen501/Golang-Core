@@ -9,5 +9,5 @@ Golang-Core
 .
 ├── api  # API module
 ├── cli  # CLI module
-├── hello # Hello module
+└── hello # Hello module
 ```
